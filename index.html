@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridFlow Checkout Demo</title>
+  <style>
+    body {
+      background-color: #f1f5f9;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .checkout-container {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      max-width: 560px;
+      width: 100%;
+      padding: 32px;
+    }
+    h1 {
+      margin: 0 0 24px;
+      font-size: 22px;
+      color: #0f172a;
+      font-weight: 700;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 12px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #0f172a;
+      background-color: #fff;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #116149;
+      box-shadow: 0 0 0 3px rgba(17, 97, 73, 0.15);
+    }
+    input[readonly] {
+      background-color: #f8fafc;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+    /* Widget Injection Area Margin spacing */
+    gridflow-checkout {
+      margin-top: 24px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="checkout-container">
+    <h1>Shipping Information</h1>
+    
+    <div class="form-group">
+      <label for="customer_name">Customer Name</label>
+      <input type="text" id="customer_name" value="Rahul Sharma">
+    </div>
+
+    <div class="form-group">
+      <label for="address1">Address Line 1</label>
+      <input type="text" id="address1" value="3-113,Gundimeda,Tadepalli Mandal,Guntur District,Andhra Pradesh">
+    </div>
+
+    <div class="form-group">
+      <label for="pincode">PIN Code (Enables Smart Verification)</label>
+      <input type="text" id="pincode" value="522303" maxlength="6">
+    </div>
+
+    <div class="form-group">
+      <label for="shipping_address_address2">Address Line 2 (GridFlow Injects Metadata Here)</label>
+      <input type="text" id="shipping_address_address2" placeholder="Calculates dynamically..." readonly>
+    </div>
+
+    <gridflow-checkout></gridflow-checkout>
+
+  </div>
+
+  <script>
+    window.GridFlow = {
+      encode: function(lat, lon) {
+        // High-performance operational placeholder logic mimicking an 8-digit numeric DIGIPIN generation sequence
+        var baseLat = Math.floor((lat + 90) * 100000).toString(16).padStart(6, '0');
+        var baseLon = Math.floor((lon + 180) * 100000).toString(16).padStart(6, '0');
+        return (baseLat.substring(2, 5) + baseLon.substring(2, 5)).toUpperCase();
+      }
+    };
+  </script>
+
+  <script src="gridflow-checkout.js"></script>
+
+</body>
+</html>

@@ -1,40 +1,9 @@
-Let's make sure this code functions perfectly without throwing unexpected errors. If we review it closely alongside how your other files load on GitHub Pages, there is still one critical point of failure that will break the pipeline completely on your live site.
-
-Look at this exact block from the code you just shared:
-
-JavaScript
-// At the top of your file:
-var Core = window.GridFlow; // CRITICAL BREAKPOINT
-
-// Later in the map callbacks:
-var code = window.GridFlow.encode(refinedPoint.lat, refinedPoint.lon);
-Why This Breaks on GitHub Pages:
-The Script Execution Race Condition: In index.html, your browser downloads and runs the scripts in order:
-
-HTML
-<script src="gridflow-core.js"></script>
-<script src="gridflow-checkout.js"></script>
-When gridflow-checkout.js instantly runs its IIFE wrapper, it checks for window.GridFlow. However, because gridflow-core.js finishes loading asynchronously or sets its factory exports across global scopes differently on web hosts, window.GridFlow may evaluate to a temporary placeholder state or the mock version you had in your HTML.
-
-The Namespace Collision Crash:
-Inside your map callback functions, the code attempts to compute the DIGIPIN by accessing:
-
-JavaScript
-window.GridFlow.encode(...)
-If window.GridFlow gets mutated or replaced by script tags running on the parent window, .encode will be completely missing or undefined. Your component will crash silently inside the Shadow DOM, freezing your button text.
-
-The Absolute Final, Fix-All gridflow-checkout.js
-To make sure your file never breaks or freezes again, we must defensively extract the encoder function at the exact second the button is clicked, rather than reading it globally when the file first instantiates.
-
-Copy this code and save it into your gridflow-checkout.js file on GitHub. It is perfectly tuned to your flat-array database format (pinData[1], pinData[2]) and completely bypasses the namespace crash:
-
-JavaScript
 (function () {
   "use strict";
 
   var leafletPromise = null;
   
-  // Isolated system state engine
+  // High-performance operational state machine isolation vault
   var systemState = {
     db: null,
     isLoaded: false,
@@ -116,26 +85,33 @@ JavaScript
       });
   }
 
+  function dispatchStateToDOM(rawCodePayload) {
+    var field = document.getElementById("shipping_address_address2");
+    if (field) {
+      // Cleanly extracts string attributes from gridflow-core.js Object wrapper instances safely
+      var resolvedStringCode = rawCodePayload;
+      if (rawCodePayload && typeof rawCodePayload === "object") {
+        resolvedStringCode = rawCodePayload.code || JSON.stringify(rawCodePayload);
+      }
+
+      var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+      nativeSetter.call(field, resolvedStringCode);
+      
+      // Multi-framework trusted event cascade binding updates (Shopify, React, Vue support)
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
+
   function getActiveEncoder() {
-    // Defensively safety-checks every potential namespace pathway of gridflow-core.js to isolate execution
+    // Structural namespace detection checking both modular and global window scope chains
     if (window.GridFlow && typeof window.GridFlow.encode === "function") {
       return window.GridFlow.encode;
     }
     if (window.GridFlow && window.GridFlow.default && typeof window.GridFlow.default.encode === "function") {
       return window.GridFlow.default.encode;
     }
-    // Strict fallback calculation formula if global module definitions collide
-    return function(lat, lon) { return lat.toFixed(6) + ", " + lon.toFixed(6); };
-  }
-
-  function dispatchStateToDOM(digipin) {
-    var field = document.getElementById("shipping_address_address2");
-    if (field) {
-      var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-      nativeSetter.call(field, digipin);
-      field.dispatchEvent(new Event("input", { bubbles: true }));
-      field.dispatchEvent(new Event("change", { bubbles: true }));
-    }
+    return function(lat, lon) { return lat.toFixed(6) + "," + lon.toFixed(6); };
   }
 
   function loadLeaflet(shadowRoot) {
@@ -245,7 +221,7 @@ JavaScript
         return;
       }
 
-      // Safe Extraction Layer reads precisely from flat array indices format
+      // Safe extraction layers mapped precisely to your live flat array database format
       var pincodeCenterLat = pinData[1];
       var pincodeCenterLon = pinData[2];
       var targetLat = pincodeCenterLat;
@@ -277,7 +253,6 @@ JavaScript
         var accuracy = Math.round(pos.coords.accuracy || 0);
         var distanceDeviceToPincodeCenter = calculateDistanceKM(deviceLat, deviceLon, pincodeCenterLat, pincodeCenterLon);
 
-        // ROUTE 1: Explicit Keyword Precision Lock
         if (activeKeywordMatch) {
           showMap(
             "Confirm Your Rooftop Target",
@@ -294,7 +269,6 @@ JavaScript
           return;
         }
 
-        // ROUTE 2: Away From Home Routine
         if (distanceDeviceToPincodeCenter > 6.0) {
           showMap(
             "You are ordering away from home",
@@ -311,7 +285,6 @@ JavaScript
           return;
         }
 
-        // ROUTE 3: Local Mitigation Anchor (Bypasses broad fallback drift)
         if (accuracy > 10 || distanceDeviceToPincodeCenter <= 6.0) {
           showMap(
             "Refine Your Rooftop Point",
@@ -380,7 +353,8 @@ JavaScript
 
     save(code, msg) {
       dispatchStateToDOM(code);
-      setStatus(this.shadowRoot, msg + " [" + code + "]", "ok");
+      var textPinDisplay = (code && typeof code === "object") ? code.code : code;
+      setStatus(this.shadowRoot, msg + " [" + textPinDisplay + "]", "ok");
     }
   }
 
